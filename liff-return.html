@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PAPRAI ขอไปนอก ร.ร. — แจ้งกลับเข้าโรงเรียน</title>
+
+  <!-- LINE LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
+
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Sarabun', 'Segoe UI', sans-serif;
+      background: #F0FDF4;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #1A2B45;
+    }
+
+    /* ── Card ─────────────────────────────────────────────── */
+    .card {
+      background: #FFFFFF;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
+      width: 100%;
+      max-width: 380px;
+      overflow: hidden;
+      animation: slideUp 0.4s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0);    }
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+      padding: 28px 24px 20px;
+      text-align: center;
+    }
+
+    .card-header .icon { font-size: 44px; margin-bottom: 10px; }
+
+    .card-header h1 {
+      color: #FFFFFF;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .card-header .subtitle {
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .card-body { padding: 24px 20px; }
+
+    /* ── Time Display ──────────────────────────────────────── */
+    .time-display {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .time-display .time-label {
+      font-size: 12px;
+      color: #64748B;
+      margin-bottom: 4px;
+    }
+
+    .time-display .time-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: #1B5E20;
+      letter-spacing: 1px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .time-display .date-value {
+      font-size: 13px;
+      color: #64748B;
+      margin-top: 2px;
+    }
+
+    /* ── Divider ───────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: #E2E8F0;
+      margin: 16px 0;
+    }
+
+    /* ── Message Box ───────────────────────────────────────── */
+    .message-box {
+      background: #F0FDF4;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #475569;
+      border: 1px solid #BBF7D0;
+    }
+
+    .message-box p { margin-bottom: 4px; }
+    .message-box p:last-child { margin-bottom: 0; }
+
+    /* ── Button ────────────────────────────────────────────── */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 0.3px;
+    }
+
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    .btn-success {
+      background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px rgba(27, 94, 32, 0.40);
+    }
+
+    /* ── Status Screen ─────────────────────────────────────── */
+    .status-screen {
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .status-icon { font-size: 56px; margin-bottom: 14px; }
+
+    .status-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .status-desc {
+      font-size: 13px;
+      color: #64748B;
+      line-height: 1.6;
+    }
+
+    /* ── Spinner ───────────────────────────────────────────── */
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #E2E8F0;
+      border-top: 4px solid #2E7D32;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Permanent badge ───────────────────────────────────── */
+    .permanent-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #E0F2FE;
+      color: #0369A1;
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    /* ── Footer ────────────────────────────────────────────── */
+    .card-footer {
+      padding: 12px 20px 20px;
+      text-align: center;
+      font-size: 11px;
+      color: #94A3B8;
+    }
+
+    /* ── Hidden ────────────────────────────────────────────── */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+
+    <!-- Header -->
+    <div class="card-header">
+      <div class="icon">🏫</div>
+      <h1>แจ้งกลับเข้าโรงเรียน</h1>
+      <div class="subtitle">PAPRAI ขอไปนอก ร.ร. — จุดสแกน QR หน้าประตู</div>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body">
+
+      <!-- หน้า: กำลังโหลด ─────────────────────────────────── -->
+      <div id="screen-loading" class="status-screen">
+        <div class="spinner"></div>
+        <div class="status-title">กำลังโหลด...</div>
+        <div class="status-desc">ป้าไพรกำลังเตรียมระบบนะคะ 😊</div>
+      </div>
+
+      <!-- หน้า: ยืนยันกลับ ────────────────────────────────── -->
+      <div id="screen-confirm" class="hidden">
+
+        <div style="text-align:center; margin-bottom:8px;">
+          <span class="permanent-badge">📌 QR ถาวรประจำประตูโรงเรียน</span>
+        </div>
+
+        <div class="time-display">
+          <div class="time-label">เวลาปัจจุบัน</div>
+          <div class="time-value" id="clock">00:00:00</div>
+          <div class="date-value" id="date-display">—</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="message-box">
+          <p>ป้าไพรพร้อมบันทึกการกลับเข้าโรงเรียนแล้วค่ะ 😊</p>
+          <p>กดปุ่มด้านล่างเพื่อแจ้งกลับ และระบบจะคำนวณระยะเวลาที่ออกไปให้อัตโนมัติค่ะ</p>
+        </div>
+
+        <button class="btn btn-success" id="btn-return" onclick="sendReturnAction()">
+          ✅ แจ้งกลับเข้าโรงเรียน
+        </button>
+
+      </div>
+
+      <!-- หน้า: กำลังส่ง ────────────────────────────────────── -->
+      <div id="screen-sending" class="hidden status-screen">
+        <div class="spinner"></div>
+        <div class="status-title">กำลังบันทึก...</div>
+        <div class="status-desc">รอสักครู่นะคะ 😊</div>
+      </div>
+
+      <!-- หน้า: สำเร็จ ─────────────────────────────────────── -->
+      <div id="screen-success" class="hidden status-screen">
+        <div class="status-icon">🎉</div>
+        <div class="status-title" style="color:#1B5E20;">บันทึกเรียบร้อยแล้วค่ะ!</div>
+        <div class="status-desc">ป้าไพรบันทึกการกลับเข้าโรงเรียนสำเร็จแล้วนะคะ 😊<br>ขอบคุณที่กลับมาตรงเวลาค่ะ 🙏</div>
+      </div>
+
+      <!-- หน้า: Error ─────────────────────────────────────── -->
+      <div id="screen-error" class="hidden status-screen">
+        <div class="status-icon">⚠️</div>
+        <div class="status-title" id="error-title" style="color:#B71C1C;">เกิดข้อผิดพลาด</div>
+        <div class="status-desc" id="error-desc">กรุณาลองใหม่อีกครั้งค่ะ</div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="card-footer">PAPRAI ขอไปนอก ร.ร. v1.0.0</div>
+
+  </div>
+
+  <!-- ── Script ───────────────────────────────────────────── -->
+  <script>
+    // ──────────────────────────────────────────────────────────
+    //  กำหนด LIFF ID ของ QR กลับเข้าโรงเรียน
+    //  แทนที่ค่าด้านล่างด้วย LIFF ID จริงของคุณ
+    // ──────────────────────────────────────────────────────────
+    const RETURN_LIFF_ID = 'YOUR-RETURN-LIFF-ID'; // ← แก้ไขตรงนี้
+
+    // ──────────────────────────────────────────────────────────
+    //  Clock: อัปเดตทุก 1 วินาที
+    // ──────────────────────────────────────────────────────────
+    function startClock() {
+      const thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+      const thDays   = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+
+      function tick() {
+        const now = new Date();
+        const bangkok = new Date(now.getTime() + 7 * 3600000); // UTC+7
+
+        const hh   = String(bangkok.getUTCHours()).padStart(2, '0');
+        const mm   = String(bangkok.getUTCMinutes()).padStart(2, '0');
+        const ss   = String(bangkok.getUTCSeconds()).padStart(2, '0');
+        const dd   = bangkok.getUTCDate();
+        const mon  = thMonths[bangkok.getUTCMonth()];
+        const yy   = bangkok.getUTCFullYear() + 543; // พ.ศ.
+        const day  = thDays[bangkok.getUTCDay()];
+
+        const clockEl = document.getElementById('clock');
+        const dateEl  = document.getElementById('date-display');
+        if (clockEl) clockEl.textContent = `${hh}:${mm}:${ss}`;
+        if (dateEl)  dateEl.textContent  = `วัน${day} ${dd} ${mon} ${yy}`;
+      }
+
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    //  แสดง screen ที่ต้องการ ซ่อนที่เหลือ
+    // ──────────────────────────────────────────────────────────
+    function showScreen(screenId) {
+      ['screen-loading', 'screen-confirm', 'screen-sending', 'screen-success', 'screen-error']
+        .forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.classList.toggle('hidden', id !== screenId);
+        });
+    }
+
+    // ──────────────────────────────────────────────────────────
+    //  แสดงหน้า Error
+    // ──────────────────────────────────────────────────────────
+    function showError(title, desc) {
+      document.getElementById('error-title').textContent = title;
+      document.getElementById('error-desc').textContent  = desc;
+      showScreen('screen-error');
+    }
+
+    // ──────────────────────────────────────────────────────────
+    //  ส่ง message "ACTION=RETURN" กลับไปยัง LINE Chat
+    //  บอทจะรับและเรียก handleReturnScan()
+    // ──────────────────────────────────────────────────────────
+    async function sendReturnAction() {
+      const btn = document.getElementById('btn-return');
+      btn.disabled = true;
+      showScreen('screen-sending');
+
+      try {
+        await liff.sendMessages([{
+          type: 'text',
+          text: 'ACTION=RETURN'
+        }]);
+
+        showScreen('screen-success');
+
+        // ปิด LIFF หลังจากส่งสำเร็จ (1 วินาที)
+        setTimeout(() => liff.closeWindow(), 1000);
+
+      } catch (err) {
+        console.error('sendMessages error:', err);
+        showError('ส่งข้อมูลไม่สำเร็จค่ะ', 'กรุณาลองใหม่ หรือแจ้งปัญหาให้อาจารย์ทราบค่ะ\n(' + (err.message || err) + ')');
+        btn.disabled = false;
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    //  Main: Initialize LIFF แล้วแสดงหน้าแจ้งกลับ
+    // ──────────────────────────────────────────────────────────
+    async function init() {
+      // เริ่ม clock ทันทีก่อน LIFF init (UX ดูดีขึ้น)
+      startClock();
+
+      try {
+        // ── 1. Init LIFF ───────────────────────────────────
+        await liff.init({ liffId: RETURN_LIFF_ID });
+
+        // ── 2. ตรวจสอบว่า login แล้ว ──────────────────────
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        // ── 3. ตรวจสอบว่าเปิดจาก LINE (ไม่ใช่ External Browser) ─
+        // LIFF ต้องการ liff.isInClient() เพื่อใช้ sendMessages()
+        if (!liff.isInClient()) {
+          showError(
+            'กรุณาเปิดผ่านแอป LINE ค่ะ',
+            'QR นี้ต้องสแกนผ่านแอป LINE เท่านั้นค่ะ\nไม่สามารถใช้งานผ่าน Browser ทั่วไปได้นะคะ 🙏'
+          );
+          return;
+        }
+
+        // ── 4. แสดงหน้ายืนยัน ─────────────────────────────
+        showScreen('screen-confirm');
+
+      } catch (err) {
+        console.error('LIFF init error:', err);
+        showError(
+          'เชื่อมต่อไม่สำเร็จค่ะ',
+          'กรุณาตรวจสอบว่าเปิดผ่านแอป LINE นะคะ\n(' + (err.message || err) + ')'
+        );
+      }
+    }
+
+    // ── เริ่มต้นเมื่อ DOM โหลดเสร็จ ──────────────────────────
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+
+</body>
+</html>
